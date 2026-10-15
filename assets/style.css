@@ -4,6 +4,26 @@
  * 主绿取校徽采样值 #00873C。
  */
 
+/* 自托管中文字体：思源黑体/宋源宋体，按本页实际用到的字裁成子集。
+   这样 Windows 上不再是微软雅黑，手机上（iOS 苹方 / 安卓各家）也统一成同一个字体。
+   改了 data/league.js 里的队名或文案后，跑 tools/subset_fonts.py 重新生成。
+   子集里没有的字会自动回退到系统字体，不会显示成方块。 */
+@font-face {
+  font-family: "NotoSansSCSub";
+  src: url("fonts/noto-sans-sc.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NotoSerifSCSub";
+  src: url("fonts/noto-serif-sc.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --g:      #00873C;   /* 校徽标准绿（从官网校徽 PNG 采样） */
   --deep:   #005C29;
@@ -20,8 +40,10 @@
 
   --radius: 14px;
   --wrap:   1120px;
-  --sans:   -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-            "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+
+  --sans:  "NotoSansSCSub", -apple-system, BlinkMacSystemFont, "Segoe UI",
+           "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --serif: "NotoSerifSCSub", "Songti SC", "SimSun", "Source Han Serif SC", serif;
 }
 
 * { box-sizing: border-box; }
@@ -184,10 +206,18 @@ main { padding: 32px 36px 40px; }
   margin-bottom: 16px;
 }
 
+/* 标题走宋体，正文和数据走黑体 —— 学府气，也和范曾手书校名呼应 */
+.head h2,
+.round__name,
+.site-foot__motto {
+  font-family: var(--serif);
+}
+
 .head h2 {
   margin: 0;
   font-size: 19px;
   font-weight: 900;
+  letter-spacing: .06em;
   color: var(--c1);
 }
 
