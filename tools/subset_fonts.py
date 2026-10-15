@@ -14,6 +14,8 @@
 依赖：fonttools + brotli（pip install fonttools brotli）
 """
 
+import hashlib
+import re
 import sys
 from pathlib import Path
 
@@ -60,6 +62,36 @@ def collect_chars(full: bool) -> str:
     return "".join(sorted(chars))
 
 
+def version_css() -> None:
+    """给 style.css 里的字体 URL 打上内容指纹（?v=xxxxxxxx）。
+
+    不做这件事会踩一个很隐蔽的坑：字体文件名不变，浏览器就一直用缓存里的旧版本。
+    重新裁剪后新增的字（比如新队名、新标题）在旧缓存里没有，只能回退到系统字体，
+    表现成"某几个字跟别的字长得不一样"，而且刷新也没用。带上指纹后，
+    字体一变 URL 就变，缓存自然失效。
+    """
+    css_path = ROOT / "assets" / "style.css"
+    css = css_path.read_text(encoding="utf-8")
+
+    digests = {}
+    for _, out_name in FONTS:
+        p = OUT_DIR / out_name
+        if p.exists():
+            digests[out_name] = hashlib.sha256(p.read_bytes()).hexdigest()[:8]
+
+    def repl(m):
+        name = m.group(1)
+        v = digests.get(name)
+        return f'url("fonts/{name}?v={v}")' if v else m.group(0)
+
+    new = re.sub(r'url\("fonts/([^"?]+)(?:\?v=[^"]*)?"\)', repl, css)
+    if new != css:
+        css_path.write_text(new, encoding="utf-8")
+        print("  已更新 style.css 里的字体指纹")
+    else:
+        print("  style.css 里的字体指纹无需变动")
+
+
 def main() -> None:
     try:
         from fontTools.subset import main as subset_main
@@ -90,6 +122,7 @@ def main() -> None:
         text_file.unlink()
         print(f"  {out_name}  {len(text)} 字  {out.stat().st_size / 1024:.0f} KB")
 
+    version_css()
     print("完成。")
 
 
