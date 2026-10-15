@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>天津中医药大学足球联赛</title>
-<meta name="description" content="天津中医药大学足球联赛 · 积分榜与赛程">
+<meta name="description" content="天津中医药大学足球联赛 · 积分榜、赛程、球队榜与射手榜">
 <meta name="theme-color" content="#00873C">
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/style.css">
@@ -26,6 +26,8 @@
   <nav class="tabs" id="tabs">
     <button class="tab active" data-page="page-standings">积分榜</button>
     <button class="tab" data-page="page-fixtures">赛程</button>
+    <button class="tab" data-page="page-teams">球队榜</button>
+    <button class="tab" data-page="page-scorers">射手榜</button>
   </nav>
 
   <main>
@@ -73,6 +75,30 @@
         <button class="chip" data-filter="played">已赛</button>
       </div>
       <div id="fixtures"></div>
+    </section>
+
+    <!-- ── 球队榜 ─────────────────────────────────── -->
+    <section class="page" id="page-teams">
+      <div id="teams-notice"></div>
+      <div class="rank-grid">
+        <div>
+          <div class="head"><h2>进球榜</h2><span class="note">进球最多</span></div>
+          <div class="rank" id="rank-gf"></div>
+        </div>
+        <div>
+          <div class="head"><h2>失球榜</h2><span class="note">失球最少在前</span></div>
+          <div class="rank" id="rank-ga"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 射手榜 ─────────────────────────────────── -->
+    <section class="page" id="page-scorers">
+      <div class="head">
+        <h2>射手榜</h2>
+        <span class="note">按进球数排序</span>
+      </div>
+      <div id="scorers"></div>
     </section>
 
   </main>
@@ -146,8 +172,34 @@
     });
   }
 
+  /* ── 从 scorers 汇总射手榜 ──────────────────────── */
+
+  function buildScorers() {
+    var by = {};
+
+    (D.matches || []).forEach(function (m) {
+      if (m.status !== "played" || !m.scorers) return;
+
+      [["home", m.home], ["away", m.away]].forEach(function (side) {
+        (m.scorers[side[0]] || []).forEach(function (name) {
+          var k = side[1] + "|" + name;
+          if (!by[k]) by[k] = { name: name, team: side[1], goals: 0 };
+          by[k].goals++;
+        });
+      });
+    });
+
+    return Object.keys(by).map(function (k) { return by[k]; })
+      .sort(function (a, b) {
+        return b.goals - a.goals
+            || a.name.localeCompare(b.name, "zh-Hans-CN");
+      });
+  }
+
   var standings = buildStandings();
+  var scorers   = buildScorers();
   var playedList = (D.matches || []).filter(function (m) { return m.status === "played"; });
+  var hasResults = playedList.length > 0;
 
   /* ── 渲染：数据条 ───────────────────────────────── */
 
@@ -185,11 +237,66 @@
     }).join("");
 
     document.querySelector("table.standings")
-      .classList.toggle("has-results", playedList.length > 0);
+      .classList.toggle("has-results", hasResults);
 
-    $("standings-notice").innerHTML = playedList.length
+    $("standings-notice").innerHTML = hasResults
       ? ""
       : '<div class="empty">比赛尚未开始，积分榜将在首场比赛结果录入后自动更新。</div>';
+  }
+
+  /* ── 渲染：排行榜条 ─────────────────────────────── */
+
+  /* rows: [{name, sub, value}] —— 按 value 画相对长度的细条
+     hasData 由调用方给：不要拿 rows[0].value 判断有没有数据，
+     失球榜是升序排的，第一名失球 0 个会被误判成"没数据"。
+     同理 max 要取全表最大值，不能取 rows[0]。 */
+  function renderRank(el, rows, unit, hasData) {
+    if (!hasData || !rows.length) {
+      el.innerHTML = '<div class="empty">暂无记录，录入比赛结果后自动生成。</div>';
+      return;
+    }
+    var max = Math.max.apply(null, rows.map(function (r) { return r.value; }));
+
+    el.innerHTML = rows.map(function (r, i) {
+      var pct = max > 0 ? Math.max(6, Math.round(r.value / max * 100)) : 0;
+      return '<div class="rank__row">' +
+        '<span class="rank__no">' + (i + 1) + "</span>" +
+        '<span class="rank__name">' + esc(r.name) +
+          (r.sub ? '<em>' + esc(r.sub) + "</em>" : "") + "</span>" +
+        '<span class="rank__bar"><i style="width:' + pct + '%"></i></span>' +
+        '<span class="rank__val">' + r.value +
+          (unit ? '<em>' + unit + "</em>" : "") + "</span>" +
+      "</div>";
+    }).join("");
+  }
+
+  function renderTeamRanks() {
+    var byGf = standings.slice().sort(function (a, b) {
+      return b.gf - a.gf || a.team.localeCompare(b.team, "zh-Hans-CN");
+    });
+    var byGa = standings.slice().sort(function (a, b) {
+      return a.ga - b.ga || a.team.localeCompare(b.team, "zh-Hans-CN");
+    });
+
+    renderRank($("rank-gf"), byGf.map(function (r) {
+      return { name: r.team, value: r.gf };
+    }), "球", hasResults);
+
+    renderRank($("rank-ga"), byGa.map(function (r) {
+      return { name: r.team, value: r.ga };
+    }), "球", hasResults);
+
+    $("teams-notice").innerHTML = hasResults
+      ? ""
+      : '<div class="empty">比赛尚未开始，球队榜将在首场比赛结果录入后自动生成。</div>';
+  }
+
+  /* ── 渲染：射手榜 ───────────────────────────────── */
+
+  function renderScorers() {
+    renderRank($("scorers"), scorers.map(function (s) {
+      return { name: s.name, sub: s.team, value: s.goals };
+    }), "球", scorers.length > 0);
   }
 
   /* ── 渲染：赛程（按轮次分组 + 筛选） ────────────── */
@@ -209,7 +316,6 @@
       return;
     }
 
-    // 按轮次切组
     var groups = [];
     list.forEach(function (m) {
       var r = m.round || 0;
@@ -284,6 +390,8 @@
 
   renderMetrics();
   renderStandings();
+  renderTeamRanks();
+  renderScorers();
   renderFixtures();
 })();
 </script>

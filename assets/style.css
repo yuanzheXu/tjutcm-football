@@ -409,6 +409,90 @@ table.standings {
 
 .fixture--upcoming .fixture__team { color: var(--c2); }
 
+/* ── 排行榜（球队榜 / 射手榜） ──────────────────────── */
+
+.rank-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 34px;
+}
+
+.rank {
+  border: 1px solid var(--ln);
+  border-radius: var(--radius);
+  background: #fff;
+  overflow: hidden;
+}
+
+.rank__row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 86px 54px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--ln);
+}
+
+.rank__row:last-child { border-bottom: 0; }
+
+.rank__no {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--c2);
+}
+
+.rank__row:nth-child(-n+3) .rank__no { color: var(--g); }
+
+.rank__name {
+  font-weight: 800;
+  color: var(--c1);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 射手榜里用 em 挂球队名 */
+.rank__name em {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--c2);
+  margin-left: 7px;
+}
+
+.rank__bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #EDF2EF;
+  overflow: hidden;
+}
+
+.rank__bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--g);
+}
+
+.rank__val {
+  text-align: right;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--g);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rank__val em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c2);
+  margin-left: 2px;
+}
+
 /* ── 空状态 ─────────────────────────────────────────── */
 
 .empty {
@@ -497,6 +581,16 @@ table.standings {
   .fixture__date { grid-area: date; }
   .fixture__tag { grid-area: tag; }
   .fixture__teams { grid-area: teams; font-size: 14px; }
+
+  /* 两个榜单在手机上竖排 */
+  .rank-grid { grid-template-columns: 1fr; gap: 26px; }
+  .rank__row {
+    grid-template-columns: 24px minmax(0, 1fr) 62px 48px;
+    gap: 10px;
+    padding: 11px 14px;
+  }
+  .rank__name { font-size: 14px; }
+  .rank__val { font-size: 14px; }
 
   .site-foot { padding: 20px 18px 28px; }
 }
