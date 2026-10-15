@@ -22,6 +22,9 @@
  * home/away 数组里各写各队进球的人名，进几个球就写几个名字。
  * 点球照常写；乌龙球写进得利的那一边。
  * 不写 scorers 只影响射手榜显示"暂无记录"，别的榜单不受影响。
+ *
+ * 比分还没录、但又想让射手榜上先有人，用下面的 manualScorers 手填，
+ * 它和 scorers 算出来的进球数会加在一起。
  */
 
 window.LEAGUE = {
@@ -85,5 +88,16 @@ window.LEAGUE = {
     { round: 7, date: "2026-11-19", home: "医技",         away: "研院",         hg: null, ag: null, status: "scheduled" },
     { round: 7, date: "2026-11-23", home: "中药",         away: "卫药联", hg: null, ag: null, status: "scheduled" },
     { round: 7, date: "2026-11-24", home: "护理",         away: "中西医",       hg: null, ag: null, status: "scheduled" },
+  ],
+
+  // 手工补录的进球，只影响射手榜。
+  // 用在比分还没录、但射手榜想先有人名的时候。
+  //   name   球员姓名
+  //   team   队名，必须和上面 teams 里写法一致；不知道就写 ""，页面上不显示队名
+  //   goals  进球数
+  // 等这些球对应的比赛录进 matches 之后，把这里的条目删掉，
+  // 否则同一批进球会被算两遍。
+  manualScorers: [
+    { name: "喻天乐", team: "卫药联", goals: 3 },
   ],
 };

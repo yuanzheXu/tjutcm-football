@@ -174,19 +174,29 @@
 
   /* ── 从 scorers 汇总射手榜 ──────────────────────── */
 
+  /* 比赛里的 scorers 和手填的 manualScorers 汇总到一张表里，
+     键是「队名|姓名」，所以重名球员只要队不一样就分开算。 */
   function buildScorers() {
     var by = {};
+
+    function add(team, name, goals) {
+      var k = team + "|" + name;
+      if (!by[k]) by[k] = { name: name, team: team, goals: 0 };
+      by[k].goals += goals;
+    }
 
     (D.matches || []).forEach(function (m) {
       if (m.status !== "played" || !m.scorers) return;
 
       [["home", m.home], ["away", m.away]].forEach(function (side) {
         (m.scorers[side[0]] || []).forEach(function (name) {
-          var k = side[1] + "|" + name;
-          if (!by[k]) by[k] = { name: name, team: side[1], goals: 0 };
-          by[k].goals++;
+          add(side[1], name, 1);
         });
       });
+    });
+
+    (D.manualScorers || []).forEach(function (s) {
+      if (s && s.name) add(s.team || "", s.name, s.goals || 0);
     });
 
     return Object.keys(by).map(function (k) { return by[k]; })
