@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>天津中医药大学足球联赛</title>
+<meta name="description" content="天津中医药大学足球联赛 · 积分榜与赛程">
+<meta name="theme-color" content="#00873C">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="site-head">
+    <div class="brand">
+      <img class="brand__emblem" src="assets/logo.png" alt="天津中医药大学校徽">
+      <img class="brand__wordmark" src="assets/logo_font.png" alt="天津中医药大学">
+      <span class="brand__divider"></span>
+      <span class="brand__league">足球联赛</span>
+    </div>
+    <span class="site-head__season" id="season"></span>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-page="page-standings">积分榜</button>
+    <button class="tab" data-page="page-fixtures">赛程</button>
+  </nav>
+
+  <main>
+
+    <!-- ── 积分榜 ─────────────────────────────────── -->
+    <section class="page active" id="page-standings">
+      <div class="metrics" id="metrics"></div>
+      <div id="standings-notice"></div>
+
+      <div class="head">
+        <h2>积分榜</h2>
+        <span class="note">胜 3 分 · 平 1 分 · 负 0 分 ｜ 依次比较积分、净胜球、进球数</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="standings">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>球队</th>
+              <th>场</th>
+              <th>胜</th>
+              <th>平</th>
+              <th>负</th>
+              <th class="col-hide-sm">进</th>
+              <th class="col-hide-sm">失</th>
+              <th>净</th>
+              <th>积分</th>
+            </tr>
+          </thead>
+          <tbody id="standings-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 赛程 ───────────────────────────────────── -->
+    <section class="page" id="page-fixtures">
+      <div class="head">
+        <h2>赛程与结果</h2>
+        <span class="note" id="updated"></span>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip active" data-filter="all">全部</button>
+        <button class="chip" data-filter="scheduled">未赛</button>
+        <button class="chip" data-filter="played">已赛</button>
+      </div>
+      <div id="fixtures"></div>
+    </section>
+
+  </main>
+
+  <footer class="site-foot">
+    <p class="site-foot__motto">进德修业　继承创新</p>
+    <p id="foot-league"></p>
+    <p>校徽与校名版权归天津中医药大学，本页仅作联赛信息展示。</p>
+  </footer>
+
+</div>
+
+<script src="data/league.js"></script>
+<script>
+(function () {
+  var D = window.LEAGUE;
+  if (!D) return;
+
+  var P = D.points || { win: 3, draw: 1, loss: 0 };
+  var $ = function (id) { return document.getElementById(id); };
+
+  var esc = function (s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  };
+  var sign = function (n) { return n > 0 ? "+" + n : String(n); };
+
+  function fmtDate(iso) {
+    var p = String(iso).split("-");
+    return p.length === 3 ? (+p[1]) + "月" + (+p[2]) + "日" : iso;
+  }
+
+  /* ── 从比赛结果算积分榜 ─────────────────────────── */
+
+  function buildStandings() {
+    var rows = {};
+
+    function row(team) {
+      if (!rows[team]) {
+        rows[team] = { team: team, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
+      }
+      return rows[team];
+    }
+
+    (D.teams || []).forEach(row);
+
+    (D.matches || []).forEach(function (m) {
+      row(m.home); row(m.away);
+      if (m.status !== "played") return;
+
+      var h = row(m.home), a = row(m.away);
+      h.p++; a.p++;
+      h.gf += m.hg; h.ga += m.ag;
+      a.gf += m.ag; a.ga += m.hg;
+
+      if (m.hg > m.ag)      { h.w++; a.l++; h.pts += P.win; }
+      else if (m.hg < m.ag) { a.w++; h.l++; a.pts += P.win; }
+      else                  { h.d++; a.d++; h.pts += P.draw; a.pts += P.draw; }
+    });
+
+    return Object.keys(rows).map(function (k) {
+      var r = rows[k];
+      r.gd = r.gf - r.ga;
+      return r;
+    }).sort(function (x, y) {
+      return y.pts - x.pts
+          || y.gd - x.gd
+          || y.gf - x.gf
+          || x.team.localeCompare(y.team, "zh-Hans-CN");
+    });
+  }
+
+  var standings = buildStandings();
+  var playedList = (D.matches || []).filter(function (m) { return m.status === "played"; });
+
+  /* ── 渲染：数据条 ───────────────────────────────── */
+
+  function renderMetrics() {
+    var goals = playedList.reduce(function (s, m) { return s + m.hg + m.ag; }, 0);
+
+    var items = [
+      ["参赛队伍", (D.teams || []).length],
+      ["总场次",   (D.matches || []).length],
+      ["已赛场次", playedList.length],
+      ["已进球",   goals],
+    ];
+
+    $("metrics").innerHTML = items.map(function (it) {
+      return '<div class="metric"><b>' + it[1] + '</b><span>' + it[0] + '</span></div>';
+    }).join("");
+  }
+
+  /* ── 渲染：积分榜 ───────────────────────────────── */
+
+  function renderStandings() {
+    $("standings-body").innerHTML = standings.map(function (r, i) {
+      return "<tr>" +
+        "<td>" + (i + 1) + "</td>" +
+        "<td>" + esc(r.team) + "</td>" +
+        "<td>" + r.p + "</td>" +
+        "<td>" + r.w + "</td>" +
+        "<td>" + r.d + "</td>" +
+        "<td>" + r.l + "</td>" +
+        '<td class="col-hide-sm">' + r.gf + "</td>" +
+        '<td class="col-hide-sm">' + r.ga + "</td>" +
+        "<td>" + sign(r.gd) + "</td>" +
+        '<td class="col-points">' + r.pts + "</td>" +
+      "</tr>";
+    }).join("");
+
+    document.querySelector("table.standings")
+      .classList.toggle("has-results", playedList.length > 0);
+
+    $("standings-notice").innerHTML = playedList.length
+      ? ""
+      : '<div class="empty">比赛尚未开始，积分榜将在首场比赛结果录入后自动更新。</div>';
+  }
+
+  /* ── 渲染：赛程（按轮次分组 + 筛选） ────────────── */
+
+  var filter = "all";
+
+  function renderFixtures() {
+    var list = (D.matches || []).slice().sort(function (a, b) {
+      return (a.round || 0) - (b.round || 0)
+          || String(a.date).localeCompare(String(b.date));
+    }).filter(function (m) {
+      return filter === "all" || m.status === filter;
+    });
+
+    if (!list.length) {
+      $("fixtures").innerHTML = '<div class="empty">没有符合条件的比赛。</div>';
+      return;
+    }
+
+    // 按轮次切组
+    var groups = [];
+    list.forEach(function (m) {
+      var r = m.round || 0;
+      var g = groups[groups.length - 1];
+      if (!g || g.round !== r) { g = { round: r, items: [] }; groups.push(g); }
+      g.items.push(m);
+    });
+
+    $("fixtures").innerHTML = groups.map(function (g) {
+      var dates = g.items.map(function (m) { return m.date; }).sort();
+      var span = dates.length > 1
+        ? fmtDate(dates[0]) + " – " + fmtDate(dates[dates.length - 1])
+        : fmtDate(dates[0]);
+
+      var rows = g.items.map(function (m) {
+        var played = m.status === "played";
+        var mid = played
+          ? '<span class="fixture__score">' + m.hg + " – " + m.ag + "</span>"
+          : '<span class="fixture__vs">VS</span>';
+
+        return '<div class="fixture' + (played ? "" : " fixture--upcoming") + '">' +
+          '<span class="fixture__date">' + fmtDate(m.date) + "</span>" +
+          '<span class="fixture__teams">' +
+            '<span class="fixture__team">' + esc(m.home) + "</span>" +
+            mid +
+            '<span class="fixture__team fixture__team--away">' + esc(m.away) + "</span>" +
+          "</span>" +
+          '<span class="fixture__tag">' + (played ? "已结束" : "未赛") + "</span>" +
+        "</div>";
+      }).join("");
+
+      return '<div class="round">' +
+        '<div class="round__head">' +
+          '<span class="round__name">第 ' + g.round + " 轮</span>" +
+          '<span class="round__dates">' + span + "</span>" +
+        "</div>" +
+        '<div class="fixtures">' + rows + "</div>" +
+      "</div>";
+    }).join("");
+  }
+
+  /* ── 交互 ───────────────────────────────────────── */
+
+  $("tabs").addEventListener("click", function (e) {
+    var btn = e.target.closest(".tab");
+    if (!btn) return;
+
+    Array.prototype.forEach.call(this.querySelectorAll(".tab"), function (b) {
+      b.classList.toggle("active", b === btn);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".page"), function (p) {
+      p.classList.toggle("active", p.id === btn.dataset.page);
+    });
+  });
+
+  $("chips").addEventListener("click", function (e) {
+    var btn = e.target.closest(".chip");
+    if (!btn) return;
+    filter = btn.dataset.filter;
+    Array.prototype.forEach.call(this.querySelectorAll(".chip"), function (b) {
+      b.classList.toggle("active", b === btn);
+    });
+    renderFixtures();
+  });
+
+  /* ── 启动 ───────────────────────────────────────── */
+
+  $("season").textContent = D.season || "";
+  $("updated").textContent = D.updated ? "更新于 " + D.updated : "";
+  $("foot-league").textContent =
+    (D.name || "足球联赛") + (D.season ? " · " + D.season : "");
+
+  renderMetrics();
+  renderStandings();
+  renderFixtures();
+})();
+</script>
+
+</body>
+</html>
