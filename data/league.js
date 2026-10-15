@@ -30,7 +30,7 @@
 window.LEAGUE = {
   name: "天津中医药大学足球联赛",
   season: "2026 赛季",
-  updated: "2026-10-15",
+  updated: "2026-10-16",
 
   points: { win: 3, draw: 1, loss: 0 },
 
@@ -49,13 +49,14 @@ window.LEAGUE = {
   matches: [
     // ── 第 1 轮 ──────────────────────────────
     { round: 1, date: "2026-10-08", home: "管院",   away: "医技",   hg: null, ag: null, status: "scheduled" },
-    { round: 1, date: "2026-10-09", home: "中西医", away: "卫药联", hg: null, ag: null, status: "scheduled" },
+    { round: 1, date: "2026-10-09", home: "中西医", away: "卫药联", hg: 2, ag: 3, status: "played",
+      scorers: { away: ["喻天乐", "喻天乐", "喻天乐"] } },
     { round: 1, date: "2026-10-12", home: "研院",         away: "中药",         hg: null, ag: null, status: "scheduled" },
-    { round: 1, date: "2026-10-13", home: "中医",         away: "护理",         hg: null, ag: null, status: "scheduled" },
+    { round: 1, date: "2026-10-13", home: "中医",         away: "护理",         hg: 3, ag: 2, status: "played" },
 
     // ── 第 2 轮 ──────────────────────────────
-    { round: 2, date: "2026-10-14", home: "卫药联", away: "管院",         hg: null, ag: null, status: "scheduled" },
-    { round: 2, date: "2026-10-15", home: "医技",         away: "中西医",       hg: null, ag: null, status: "scheduled" },
+    { round: 2, date: "2026-10-14", home: "卫药联", away: "管院",         hg: 2, ag: 6, status: "played" },
+    { round: 2, date: "2026-10-15", home: "医技",         away: "中西医",       hg: 5, ag: 0, status: "played" },
     { round: 2, date: "2026-10-19", home: "护理",         away: "研院",         hg: null, ag: null, status: "scheduled" },
     { round: 2, date: "2026-10-20", home: "中药",         away: "中医",         hg: null, ag: null, status: "scheduled" },
 
@@ -97,7 +98,6 @@ window.LEAGUE = {
   //   goals  进球数
   // 等这些球对应的比赛录进 matches 之后，把这里的条目删掉，
   // 否则同一批进球会被算两遍。
-  manualScorers: [
-    { name: "喻天乐", team: "卫药联", goals: 3 },
-  ],
+  // 现在是空的：喻天乐那 3 球已经挂到 10-09 那场上了。
+  manualScorers: [],
 };
