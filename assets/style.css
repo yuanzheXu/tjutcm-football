@@ -7,10 +7,11 @@
 /* 自托管中文字体：思源黑体/宋源宋体，按本页实际用到的字裁成子集。
    这样 Windows 上不再是微软雅黑，手机上（iOS 苹方 / 安卓各家）也统一成同一个字体。
    改了 data/league.js 里的队名或文案后，跑 tools/subset_fonts.py 重新生成。
-   子集里没有的字会自动回退到系统字体，不会显示成方块。 */
+   子集里没有的字会回退到系统字体；安卓上不一定有中文宋体，缺字会显示成方块，
+   所以改了封面标题或队名后务必重跑脚本。 */
 @font-face {
   font-family: "NotoSansSCSub";
-  src: url("fonts/noto-sans-sc.woff2?v=7c1e820e") format("woff2");
+  src: url("fonts/noto-sans-sc.woff2?v=e2edcf5f") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -18,7 +19,7 @@
 
 @font-face {
   font-family: "NotoSerifSCSub";
-  src: url("fonts/noto-serif-sc.woff2?v=9fa69f9d") format("woff2");
+  src: url("fonts/noto-serif-sc.woff2?v=c2433e45") format("woff2");
   font-weight: 200 900;
   font-style: normal;
   font-display: swap;
@@ -208,8 +209,7 @@ main { padding: 32px 36px 40px; }
 
 /* 标题走宋体，正文和数据走黑体 —— 学府气，也和范曾手书校名呼应 */
 .head h2,
-.round__name,
-.site-foot__motto {
+.round__name {
   font-family: var(--serif);
 }
 
@@ -526,14 +526,6 @@ table.standings {
   font-size: 13px;
 }
 
-.site-foot__motto {
-  margin: 0 0 10px;
-  font-size: 15px;
-  letter-spacing: .3em;
-  color: var(--g);
-  font-weight: 800;
-}
-
 .site-foot p { margin: 0 0 4px; }
 
 /* ── 窄屏（微信里打开的主要场景） ───────────────────── */
@@ -761,12 +753,16 @@ table.standings {
     aspect-ratio: auto;
   }
   .hero__layer--cover { object-position: 84% center; }
-  .hero__copy { left: 18px; right: 18px; bottom: 24px; max-width: none; }
+  .hero__copy { left: 18px; right: 18px; bottom: 34px; max-width: none; }
   .hero__copy h1 { font-size: clamp(24px, 7.4vw, 30px); }
   .hero__eyebrow { margin-bottom: 10px; font-size: 10px; }
   .hero__dots { right: 10px; bottom: 6px; }
 
   .br-sm { display: inline; }
+}
+
+@media (max-width: 360px) {
+  .tab { padding: 0 12px; font-size: 14.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

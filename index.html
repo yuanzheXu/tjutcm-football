@@ -7,7 +7,7 @@
 <meta name="description" content="天津中医药大学足球联赛 · 积分榜、赛程、球队榜与射手榜">
 <meta name="theme-color" content="#00873C">
 <link rel="icon" href="assets/logo.png">
-<link rel="stylesheet" href="assets/style.css?v=20261019">
+<link rel="stylesheet" href="assets/style.css?v=20261019b">
 </head>
 <body>
 
@@ -128,7 +128,6 @@
   </main>
 
   <footer class="site-foot">
-    <p class="site-foot__motto">进德修业　继承创新</p>
     <p id="foot-league"></p>
     <p>校徽与校名版权归天津中医药大学，本页仅作联赛信息展示。</p>
   </footer>
@@ -403,6 +402,13 @@
     Array.prototype.forEach.call(document.querySelectorAll(".page"), function (p) {
       p.classList.toggle("active", p.id === btn.dataset.page);
     });
+
+    /* 已经滚过导航条时切页，要回到导航条位置。
+       否则浏览器会沿用旧的滚动位置，新页面从半截开始，标题被吸顶栏盖住。
+       导航条是 sticky 的，吸住后 offsetTop 会跟着变，所以用上一块（封面）算静态位置。 */
+    var prev = this.previousElementSibling;
+    var top = prev ? prev.offsetTop + prev.offsetHeight : 0;
+    if (window.pageYOffset > top) window.scrollTo(0, top);
   });
 
   $("chips").addEventListener("click", function (e) {
