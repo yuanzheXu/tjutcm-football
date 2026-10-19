@@ -516,6 +516,13 @@ table.standings {
   font-size: 14px;
 }
 
+/* 嵌在榜单卡片里的空状态，外层已经有边框，不要再套一层 */
+.rank .empty {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
 /* ── 页脚 ───────────────────────────────────────────── */
 
 .site-foot {

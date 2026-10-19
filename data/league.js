@@ -11,6 +11,7 @@
  *   hg/ag   比分    —— 还没踢就写 null
  *   status  "played" 已赛 / "scheduled" 未赛
  *   scorers 进球球员，可选。不写就一直显示"暂无记录"。
+ *   assists 助攻球员，可选。格式同 scorers，影响助攻榜。
  *
  * 录入比分时把 hg/ag 填上数字、status 改成 "played" 即可。
  *
@@ -25,6 +26,13 @@
  *
  * 比分还没录、但又想让射手榜上先有人，用下面的 manualScorers 手填，
  * 它和 scorers 算出来的进球数会加在一起。
+ *
+ * 助攻榜同理，用 assists 字段，写进去的每个名字算 1 次助攻：
+ *
+ *   assists: { home: ["球员甲"], away: ["球员乙", "球员丙"] }
+ *
+ * 同一个人只要两边都写，就会同时出现在射手榜和助攻榜上。
+ * 比分没录但想先挂助攻，用下面的 manualAssists 手填。
  */
 
 window.LEAGUE = {
@@ -100,4 +108,11 @@ window.LEAGUE = {
   // 否则同一批进球会被算两遍。
   // 现在是空的：喻天乐那 3 球已经挂到 10-09 那场上了。
   manualScorers: [],
+
+  // 手工补录的助攻，只影响助攻榜。字段和 manualScorers 一样，
+  // 只是把 goals 换成 assists。等对应比赛录进 matches 后同样要删掉，避免算两遍。
+  //   name     球员姓名
+  //   team     队名，不知道就写 ""
+  //   assists  助攻数
+  manualAssists: [],
 };

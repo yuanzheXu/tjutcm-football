@@ -51,7 +51,7 @@
     <button class="tab active" data-page="page-standings">积分榜</button>
     <button class="tab" data-page="page-fixtures">赛程</button>
     <button class="tab" data-page="page-teams">球队榜</button>
-    <button class="tab" data-page="page-scorers">射手榜</button>
+    <button class="tab" data-page="page-scorers">球员榜</button>
   </nav>
 
   <main>
@@ -116,13 +116,18 @@
       </div>
     </section>
 
-    <!-- ── 射手榜 ─────────────────────────────────── -->
+    <!-- ── 球员榜（射手榜 / 助攻榜） ─────────────── -->
     <section class="page" id="page-scorers">
-      <div class="head">
-        <h2>射手榜</h2>
-        <span class="note">按进球数排序</span>
+      <div class="rank-grid">
+        <div>
+          <div class="head"><h2>射手榜</h2><span class="note">按进球数排序</span></div>
+          <div class="rank" id="scorers"></div>
+        </div>
+        <div>
+          <div class="head"><h2>助攻榜</h2><span class="note">按助攻数排序</span></div>
+          <div class="rank" id="assists"></div>
+        </div>
       </div>
-      <div id="scorers"></div>
     </section>
 
   </main>
@@ -229,8 +234,43 @@
       });
   }
 
+  /* ── 从 assists 汇总助攻榜 ─────────────────────── */
+
+  /* 和射手榜同一套写法：比赛里的 assists 和手填的 manualAssists
+     汇总到一张表，键同样是「队名|姓名」。 */
+  function buildAssists() {
+    var by = {};
+
+    function add(team, name, n) {
+      var k = team + "|" + name;
+      if (!by[k]) by[k] = { name: name, team: team, assists: 0 };
+      by[k].assists += n;
+    }
+
+    (D.matches || []).forEach(function (m) {
+      if (m.status !== "played" || !m.assists) return;
+
+      [["home", m.home], ["away", m.away]].forEach(function (side) {
+        (m.assists[side[0]] || []).forEach(function (name) {
+          add(side[1], name, 1);
+        });
+      });
+    });
+
+    (D.manualAssists || []).forEach(function (a) {
+      if (a && a.name) add(a.team || "", a.name, a.assists || 0);
+    });
+
+    return Object.keys(by).map(function (k) { return by[k]; })
+      .sort(function (a, b) {
+        return b.assists - a.assists
+            || a.name.localeCompare(b.name, "zh-Hans-CN");
+      });
+  }
+
   var standings = buildStandings();
   var scorers   = buildScorers();
+  var assists   = buildAssists();
   var playedList = (D.matches || []).filter(function (m) { return m.status === "played"; });
   var hasResults = playedList.length > 0;
 
@@ -283,9 +323,10 @@
      hasData 由调用方给：不要拿 rows[0].value 判断有没有数据，
      失球榜是升序排的，第一名失球 0 个会被误判成"没数据"。
      同理 max 要取全表最大值，不能取 rows[0]。 */
-  function renderRank(el, rows, unit, hasData) {
+  function renderRank(el, rows, unit, hasData, emptyText) {
     if (!hasData || !rows.length) {
-      el.innerHTML = '<div class="empty">暂无记录，录入比赛结果后自动生成。</div>';
+      el.innerHTML = '<div class="empty">' +
+        (emptyText || "暂无记录，录入比赛结果后自动生成。") + '</div>';
       return;
     }
     var max = Math.max.apply(null, rows.map(function (r) { return r.value; }));
@@ -324,12 +365,16 @@
       : '<div class="empty">比赛尚未开始，球队榜将在首场比赛结果录入后自动生成。</div>';
   }
 
-  /* ── 渲染：射手榜 ───────────────────────────────── */
+  /* ── 渲染：射手榜 / 助攻榜 ─────────────────────── */
 
-  function renderScorers() {
+  function renderPlayerRanks() {
     renderRank($("scorers"), scorers.map(function (s) {
       return { name: s.name, sub: s.team, value: s.goals };
     }), "球", scorers.length > 0);
+
+    renderRank($("assists"), assists.map(function (a) {
+      return { name: a.name, sub: a.team, value: a.assists };
+    }), "次", assists.length > 0, "暂无助攻记录，录入比赛助攻后自动生成。");
   }
 
   /* ── 渲染：赛程（按轮次分组 + 筛选） ────────────── */
@@ -431,7 +476,7 @@
   renderMetrics();
   renderStandings();
   renderTeamRanks();
-  renderScorers();
+  renderPlayerRanks();
   renderFixtures();
 })();
 </script>
