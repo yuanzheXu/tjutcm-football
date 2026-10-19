@@ -20,15 +20,31 @@
       <span class="brand__divider"></span>
       <span class="brand__league">足球联赛</span>
     </div>
-    <span class="site-head__season" id="season"></span>
+    <div class="site-head__meta">
+      <span class="site-head__season" id="season"></span>
+    </div>
   </header>
 
-  <nav class="tabs" id="tabs">
-    <button class="tab active" data-page="page-standings">积分榜</button>
-    <button class="tab" data-page="page-fixtures">赛程</button>
-    <button class="tab" data-page="page-teams">球队榜</button>
-    <button class="tab" data-page="page-scorers">射手榜</button>
-  </nav>
+  <section class="hero" aria-label="联赛封面">
+    <div class="hero__stage">
+      <img class="hero__layer hero__layer--under" id="heroUnder" src="assets/hero/cover.jpg" alt="通向球场的通道">
+      <img class="hero__layer hero__layer--over" id="heroOver" src="assets/hero/cover.jpg" alt="" aria-hidden="true">
+      <div class="hero__shade"></div>
+      <div class="hero__copy">
+        <p class="hero__eyebrow">2026 赛季 · 校园足球</p>
+        <h1>天津中医药大学<br><span>足球联赛</span></h1>
+        <p class="hero__desc">八支球队，七轮单循环。每一次奔跑，都算数。</p>
+      </div>
+      <p class="hero__hint">鼠标经过下方导航，切换影像</p>
+    </div>
+
+    <nav class="tabs" id="tabs" aria-label="主导航">
+      <button class="tab active" data-page="page-standings" data-hero="assets/hero/standings.jpg" data-effect="fade" data-alt="夜色中的足球场">积分榜</button>
+      <button class="tab" data-page="page-fixtures" data-hero="assets/hero/fixtures.jpg" data-effect="slide" data-alt="草地上的足球">赛程</button>
+      <button class="tab" data-page="page-teams" data-hero="assets/hero/teams.jpg" data-effect="wipe" data-alt="球队阵型示意">球队榜</button>
+      <button class="tab" data-page="page-scorers" data-hero="assets/hero/scorers.jpg" data-effect="blur" data-alt="球门与足球">射手榜</button>
+    </nav>
+  </section>
 
   <main>
 
@@ -403,6 +419,59 @@
   renderTeamRanks();
   renderScorers();
   renderFixtures();
+})();
+</script>
+
+<script>
+(function () {
+  var tabs = document.getElementById("tabs");
+  var under = document.getElementById("heroUnder");
+  var over = document.getElementById("heroOver");
+  if (!tabs || !under || !over) return;
+
+  ["cover", "standings", "fixtures", "teams", "scorers"].forEach(function (name) {
+    var img = new Image();
+    img.src = "assets/hero/" + name + ".jpg";
+  });
+
+  var currentSrc = under.getAttribute("src");
+  var timer = null;
+
+  function preview(tab) {
+    var src = tab.getAttribute("data-hero");
+    if (!src) return;
+
+    if (src === currentSrc) {
+      clearTimeout(timer);
+      timer = null;
+      over.className = "hero__layer hero__layer--over";
+      return;
+    }
+
+    var effect = tab.getAttribute("data-effect") || "fade";
+    var alt = tab.getAttribute("data-alt") || "";
+
+    clearTimeout(timer);
+    over.className = "hero__layer hero__layer--over";
+    over.src = src;
+    over.alt = alt;
+    void over.offsetWidth;
+    over.className = "hero__layer hero__layer--over fx-" + effect;
+
+    timer = setTimeout(function () {
+      under.src = src;
+      under.alt = alt;
+      currentSrc = src;
+      over.className = "hero__layer hero__layer--over";
+      timer = null;
+    }, 1000);
+  }
+
+  Array.prototype.forEach.call(tabs.querySelectorAll(".tab"), function (tab) {
+    tab.addEventListener("mouseenter", function () { preview(tab); });
+    tab.addEventListener("focus", function () { preview(tab); });
+    tab.addEventListener("click", function () { preview(tab); });
+  });
 })();
 </script>
 

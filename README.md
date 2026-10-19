@@ -8,6 +8,7 @@
 index.html                  页面（不用改）
 assets/style.css            样式（改配色改这里）
 assets/fonts/               自托管中文字体子集（见下方「字体」）
+assets/hero/                封面与四个标签页的切换影像
 assets/logo.png             校徽（取自学校官网）
 assets/logo_font.png        校名标准字·白（页头绿底上用的就是这个）
 assets/logo_font_green.png  校名标准字·绿（备用，白底场景）
