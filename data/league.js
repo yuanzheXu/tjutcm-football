@@ -116,5 +116,7 @@ window.LEAGUE = {
   //   name     球员姓名
   //   team     队名，不知道就写 ""
   //   assists  助攻数
-  manualAssists: [],
+  manualAssists: [
+    { team: "卫药联", name: "陈勃宏", assists: 2 },
+  ],
 };
