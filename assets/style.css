@@ -224,7 +224,11 @@ main { padding: 32px 36px 40px; }
 .head .note {
   font-size: 13px;
   color: var(--c2);
+  text-wrap: balance;
 }
+
+/* 只在窄屏生效的换行：让积分规则从「｜」处断，别把「依次」拆开 */
+.br-sm { display: none; }
 
 /* ── 积分榜 ─────────────────────────────────────────── */
 
@@ -314,6 +318,13 @@ table.standings {
   border-color: var(--g);
   background: var(--mint);
   color: var(--g);
+}
+
+/* 手机上点按不该闪一片蓝色，也别等 300ms 双击判定 */
+.tab,
+.chip {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .round { margin-bottom: 26px; }
@@ -532,19 +543,32 @@ table.standings {
     width: 100%;
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
     border-radius: 0;
     box-shadow: none;
+    overflow: visible; /* 让导航条能吸顶 */
   }
 
-  .site-head { padding: 16px 18px; min-height: 68px; gap: 12px; }
+  .site-head {
+    padding: 14px 18px;
+    padding-top: calc(14px + env(safe-area-inset-top));
+    min-height: 64px;
+    gap: 12px;
+  }
   .brand { gap: 11px; }
   .brand__emblem { width: 40px; height: 40px; }
-  .brand__wordmark { height: 22px; }
+  .brand__wordmark { height: 24px; }
   .brand__divider,
   .brand__league { display: none; }
   .site-head__season { font-size: 12px; }
 
-  .tabs { padding: 0 12px; }
+  .tabs {
+    padding: 0 12px;
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 30;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, .07);
+  }
   .tab { padding: 0 14px; font-size: 15px; height: 50px; }
 
   main { padding: 20px 18px 32px; }
@@ -554,6 +578,7 @@ table.standings {
   .metric b { font-size: 20px; }
 
   .head { flex-wrap: wrap; gap: 4px; }
+  .chip { min-height: 42px; }
 
   /* 固定表格布局，保证整表一定塞得进屏幕 */
   .standings { table-layout: fixed; }
@@ -561,12 +586,14 @@ table.standings {
   .standings thead th { padding: 11px 2px; font-size: 11px; }
   .standings tbody td { padding: 13px 2px; font-size: 13.5px; }
 
-  .standings th:nth-child(1), .standings td:nth-child(1) { width: 8%; }
-  .standings th:nth-child(2), .standings td:nth-child(2) { width: 33%; padding-left: 6px; font-size: 13px; }
+  /* 桌面端首列写死了 56px，这里要用同权重的选择器压回去 */
+  .standings thead th:first-child,
+  .standings tbody td:first-child { width: 8%; }
+  .standings th:nth-child(2), .standings td:nth-child(2) { width: 31%; padding-left: 6px; font-size: 13px; }
   .standings th:nth-child(3), .standings td:nth-child(3),
   .standings th:nth-child(4), .standings td:nth-child(4),
   .standings th:nth-child(5), .standings td:nth-child(5),
-  .standings th:nth-child(6), .standings td:nth-child(6) { width: 8.5%; }
+  .standings th:nth-child(6), .standings td:nth-child(6) { width: 9%; }
   .standings th:nth-child(9), .standings td:nth-child(9) { width: 10%; }
   .standings th:nth-child(10), .standings td:nth-child(10) { width: 15%; }
   .standings .col-points { font-size: 15px; }
@@ -592,7 +619,10 @@ table.standings {
   .rank__name { font-size: 14px; }
   .rank__val { font-size: 14px; }
 
-  .site-foot { padding: 20px 18px 28px; }
+  .site-foot {
+    padding: 20px 18px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
 }
 
 /* ── 页眉元信息 ─────────────────────────────────────── */
@@ -623,6 +653,49 @@ table.standings {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  opacity: 0;
+  transition: opacity 1.05s ease;
+}
+
+.hero__layer.is-active { opacity: 1; }
+
+/* 主图里球场偏右，窄屏裁切时往右取景，别把球场裁掉 */
+.hero__layer--cover { object-position: 70% center; }
+
+.hero__dots {
+  position: absolute;
+  z-index: 4;
+  right: 22px;
+  bottom: 16px;
+  display: flex;
+  gap: 2px;
+}
+
+.hero__dot {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.hero__dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .38);
+  transition: background-color .25s ease, transform .25s ease;
+}
+
+.hero__dot.is-active::before {
+  background: #fff;
+  transform: scale(1.3);
 }
 
 .hero__shade {
@@ -676,12 +749,26 @@ table.standings {
 }
 
 @media (max-width: 720px) {
-  .site-head { flex-wrap: wrap; row-gap: 10px; }
-  .site-head__meta { width: 100%; justify-content: space-between; }
+  /* 手机上一行放下校徽 + 校名 + 赛季，不再单占一行 */
+  .site-head { flex-wrap: nowrap; row-gap: 0; }
+  .site-head__meta { width: auto; margin-left: auto; justify-content: flex-end; }
   .site-head__season { font-size: 12px; }
 
-  .hero__stage { height: 300px; }
+  /* 定高 + 定宽，别让 aspect-ratio 把 300px 高反算出 686px 宽（会被裁掉右边） */
+  .hero__stage {
+    width: 100%;
+    height: clamp(210px, 58vw, 290px);
+    aspect-ratio: auto;
+  }
+  .hero__layer--cover { object-position: 84% center; }
   .hero__copy { left: 18px; right: 18px; bottom: 24px; max-width: none; }
-  .hero__copy h1 { font-size: 30px; }
+  .hero__copy h1 { font-size: clamp(24px, 7.4vw, 30px); }
   .hero__eyebrow { margin-bottom: 10px; font-size: 10px; }
+  .hero__dots { right: 10px; bottom: 6px; }
+
+  .br-sm { display: inline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__layer { transition: none; }
 }

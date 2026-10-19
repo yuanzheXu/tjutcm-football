@@ -27,21 +27,32 @@
 
   <section class="hero" aria-label="联赛封面">
     <div class="hero__stage">
-      <img class="hero__layer" src="assets/hero/cover.jpg" alt="通向球场的通道">
+      <img class="hero__layer hero__layer--cover is-active" src="assets/hero/cover.jpg" alt="" decoding="async" fetchpriority="high">
+      <img class="hero__layer" src="assets/hero/standings.jpg" alt="" decoding="async">
+      <img class="hero__layer" src="assets/hero/fixtures.jpg" alt="" decoding="async">
+      <img class="hero__layer" src="assets/hero/teams.jpg" alt="" decoding="async">
+      <img class="hero__layer" src="assets/hero/scorers.jpg" alt="" decoding="async">
       <div class="hero__shade"></div>
       <div class="hero__copy">
         <p class="hero__eyebrow">2026 赛季 · 校园足球</p>
         <h1>天津中医药大学<br><span>足球联赛</span></h1>
       </div>
+      <div class="hero__dots" id="hero-dots" aria-label="封面图切换">
+        <button class="hero__dot is-active" type="button" aria-label="第 1 张封面图" aria-current="true"></button>
+        <button class="hero__dot" type="button" aria-label="第 2 张封面图"></button>
+        <button class="hero__dot" type="button" aria-label="第 3 张封面图"></button>
+        <button class="hero__dot" type="button" aria-label="第 4 张封面图"></button>
+        <button class="hero__dot" type="button" aria-label="第 5 张封面图"></button>
+      </div>
     </div>
-
-    <nav class="tabs" id="tabs" aria-label="主导航">
-      <button class="tab active" data-page="page-standings">积分榜</button>
-      <button class="tab" data-page="page-fixtures">赛程</button>
-      <button class="tab" data-page="page-teams">球队榜</button>
-      <button class="tab" data-page="page-scorers">射手榜</button>
-    </nav>
   </section>
+
+  <nav class="tabs" id="tabs" aria-label="主导航">
+    <button class="tab active" data-page="page-standings">积分榜</button>
+    <button class="tab" data-page="page-fixtures">赛程</button>
+    <button class="tab" data-page="page-teams">球队榜</button>
+    <button class="tab" data-page="page-scorers">射手榜</button>
+  </nav>
 
   <main>
 
@@ -52,7 +63,7 @@
 
       <div class="head">
         <h2>积分榜</h2>
-        <span class="note">胜 3 分 · 平 1 分 · 负 0 分 ｜ 依次比较积分、净胜球、进球数</span>
+        <span class="note">胜 3 分 · 平 1 分 · 负 0 分 ｜<br class="br-sm">依次比较积分、净胜球、进球数</span>
       </div>
 
       <div class="table-wrap">
@@ -416,6 +427,70 @@
   renderTeamRanks();
   renderScorers();
   renderFixtures();
+})();
+</script>
+
+<script>
+/* 封面影像自动轮播：5 秒换一张，悬停或用键盘聚焦时暂停。
+   系统开了「减少动态效果」就不自动播，只保留手动点选。 */
+(function () {
+  var stage = document.querySelector(".hero__stage");
+  var layers = [].slice.call(document.querySelectorAll(".hero__layer"));
+  var dots = [].slice.call(document.querySelectorAll(".hero__dot"));
+  if (!stage || layers.length < 2) return;
+
+  var at = 0;
+  var timer = null;
+  var DELAY = 5000;
+
+  var reduce = window.matchMedia
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : null;
+  var canAuto = !(reduce && reduce.matches);
+
+  function show(n) {
+    at = (n + layers.length) % layers.length;
+
+    layers.forEach(function (img, i) {
+      img.classList.toggle("is-active", i === at);
+    });
+    dots.forEach(function (dot, i) {
+      dot.classList.toggle("is-active", i === at);
+      if (i === at) dot.setAttribute("aria-current", "true");
+      else dot.removeAttribute("aria-current");
+    });
+  }
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+
+  function play() {
+    stop();
+    if (!canAuto || document.hidden) return;
+    timer = setInterval(function () { show(at + 1); }, DELAY);
+  }
+
+  dots.forEach(function (dot, i) {
+    dot.addEventListener("click", function () { show(i); play(); });
+  });
+
+  stage.addEventListener("mouseenter", stop);
+  stage.addEventListener("mouseleave", play);
+  stage.addEventListener("focusin", stop);
+  stage.addEventListener("focusout", play);
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stop(); else play();
+  });
+
+  if (reduce && reduce.addEventListener) {
+    reduce.addEventListener("change", function (e) {
+      canAuto = !e.matches;
+      if (canAuto) play(); else stop();
+    });
+  }
+
+  play();
 })();
 </script>
 
