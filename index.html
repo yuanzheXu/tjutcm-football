@@ -414,6 +414,19 @@
           ? '<span class="fixture__score">' + m.hg + " – " + m.ag + "</span>"
           : '<span class="fixture__vs">VS</span>';
 
+        var yh = (m.yellow && m.yellow.home) || 0;
+        var ya = (m.yellow && m.yellow.away) || 0;
+        var cards = "";
+        if (yh + ya > 0) {
+          var icons = "";
+          for (var i = 0; i < yh + ya; i++) {
+            icons += '<i class="yellow-card" aria-hidden="true"></i>';
+          }
+          cards = '<span class="fixture__cards" role="img" aria-label="黄牌：' +
+            esc(m.home) + " " + yh + " 张，" + esc(m.away) + " " + ya + ' 张">' +
+            icons + "</span>";
+        }
+
         return '<div class="fixture' + (played ? "" : " fixture--upcoming") + '">' +
           '<span class="fixture__date">' + fmtDate(m.date) + "</span>" +
           '<span class="fixture__teams">' +
@@ -421,7 +434,7 @@
             mid +
             '<span class="fixture__team fixture__team--away">' + esc(m.away) + "</span>" +
           "</span>" +
-          '<span class="fixture__tag">' + (played ? "已结束" : "未赛") + "</span>" +
+          '<span class="fixture__tag">' + (played ? "已结束" : "未赛") + cards + "</span>" +
         "</div>";
       }).join("");
 

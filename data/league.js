@@ -12,6 +12,7 @@
  *   status  "played" 已赛 / "scheduled" 未赛
  *   scorers 进球球员，可选。不写就一直显示"暂无记录"。
  *   assists 助攻球员，可选。格式同 scorers，影响助攻榜。
+ *   yellow  黄牌数，可选。写 { home: 1, away: 1 }，赛程里画黄牌。
  *
  * 录入比分时把 hg/ag 填上数字、status 改成 "played" 即可。
  *
@@ -38,7 +39,7 @@
 window.LEAGUE = {
   name: "天津中医药大学足球联赛",
   season: "2026 赛季",
-  updated: "2026-10-16",
+  updated: "2026-10-19",
 
   points: { win: 3, draw: 1, loss: 0 },
 
@@ -65,7 +66,8 @@ window.LEAGUE = {
     // ── 第 2 轮 ──────────────────────────────
     { round: 2, date: "2026-10-14", home: "卫药联", away: "管院",         hg: 2, ag: 6, status: "played" },
     { round: 2, date: "2026-10-15", home: "医技",         away: "中西医",       hg: 5, ag: 0, status: "played" },
-    { round: 2, date: "2026-10-19", home: "护理",         away: "研院",         hg: null, ag: null, status: "scheduled" },
+    { round: 2, date: "2026-10-19", home: "护理",         away: "研院",         hg: 2, ag: 3, status: "played",
+      yellow: { home: 1, away: 1 } },
     { round: 2, date: "2026-10-20", home: "中药",         away: "中医",         hg: null, ag: null, status: "scheduled" },
 
     // ── 第 3 轮 ──────────────────────────────
