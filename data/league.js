@@ -39,7 +39,7 @@
 window.LEAGUE = {
   name: "天津中医药大学足球联赛",
   season: "2026 赛季",
-  updated: "2026-10-19",
+  updated: "2026-10-20",
 
   points: { win: 3, draw: 1, loss: 0 },
 
@@ -64,7 +64,9 @@ window.LEAGUE = {
     { round: 1, date: "2026-10-13", home: "中医",         away: "护理",         hg: 3, ag: 2, status: "played" },
 
     // ── 第 2 轮 ──────────────────────────────
-    { round: 2, date: "2026-10-14", home: "卫药联", away: "管院",         hg: 2, ag: 6, status: "played" },
+    { round: 2, date: "2026-10-14", home: "卫药联", away: "管院",         hg: 2, ag: 6, status: "played",
+      scorers: { away: ["马正国", "马正国", "旦曾", "魏立铭", "董恒成", "董恒成"] },
+      assists: { away: ["董恒成", "董恒成", "旦曾"] } },
     { round: 2, date: "2026-10-15", home: "医技",         away: "中西医",       hg: 5, ag: 0, status: "played" },
     { round: 2, date: "2026-10-19", home: "护理",         away: "研院",         hg: 2, ag: 3, status: "played",
       yellow: { home: 1, away: 1 } },
